@@ -1,8 +1,8 @@
 // A*
 // tutorial @ https://youtu.be/aKYlikFAV4k?t=32m31s
 
-var xCols = 15;
-var yRows = 15;
+var xCols = 40;
+var yRows = 40;
 var grid = new Array(xCols);
 
 var openNodes = [];
@@ -11,6 +11,7 @@ var start;
 var end;
 var path = [];
 var currentNode;
+var noSolution = false;
 
 var w, h;
 
@@ -23,6 +24,7 @@ function removeNode(nodeArray_, node_){
 }
 
 // Manhattan distance
+// not adjusted for true diagonal; all distances == 1
 function heuristic(a, b) {
 	var d = abs(a.i - b.i) + abs(a.j - b.j);
 	return d;
@@ -42,9 +44,17 @@ function Node(i,j) {
 	this.h = 0;
 	this.neighbours = [];
 	this.previous = undefined;
+	this.wall = false;
+
+	if (random(1) < 0.4) {
+		this.wall = true;
+	}
 
 	this.show = function(col) {
 		fill(col);
+		if (this.wall) {
+			fill(20);
+		}
 		noStroke();
 		rect(this.i * w, this.j * h, w - 1, h - 1);
 	}
@@ -64,13 +74,27 @@ function Node(i,j) {
 		if (j > 0) {
 			this.neighbours.push(grid[i][j - 1])
 		}
+
+		// Add diagonals
+		if (i < xCols - 1 && j > 0) {
+			this.neighbours.push(grid[i + 1][j - 1])
+		}
+		if (i > 0 && j > 0) {
+			this.neighbours.push(grid[i - 1][j - 1])
+		}
+		if (j < yRows - 1 && i > 0) {
+			this.neighbours.push(grid[i - 1][j + 1])
+		}
+		if (j < yRows && i < xCols - 1) {
+			this.neighbours.push(grid[i + 1][j + 1])
+		}
 	}
 }
 
 
 
 function setup() {
-	createCanvas(600,600);
+	createCanvas(400,400);
 	console.log("----- A* p5.js implementation -----");
 
 	w = width/xCols;
@@ -94,6 +118,8 @@ function setup() {
 
 	start = grid[1][2]; // start position
 	end = grid[yRows-4][xCols-9]; // end position
+	start.wall = false;
+	end.wall = false;
 
 	openNodes.push(start);
 
@@ -105,6 +131,7 @@ function setup() {
 
 function draw() {
 
+	// Algorithm
 	if (openNodes.length > 0) {
 
 		var cheapest = 0;
@@ -131,21 +158,26 @@ function draw() {
 
 		for(var i = 0; i < neighbours.length; i++) {
 			var neighbour = neighbours[i];
-			if(!closedNodes.includes(neighbour)) {
+			if(!closedNodes.includes(neighbour) && !neighbour.wall) {
 				var tempG = currentNode.g + 1;  // + 1 == distance between neighbour and current
 
+				var newPath = false;
 				if(openNodes.includes(neighbour)){
 					if(tempG < neighbour.g){
 						neighbour.g = tempG;
+						newPath = true;
 					}
 				} else {
 					neighbour.g = tempG;
 					openNodes.push(neighbour);
+					newPath = true;
 				}
 
-				neighbour.h = heuristic(neighbour, end);
-				neighbour.f = neighbour.g + neighbour.h
-				neighbour.previous = currentNode;
+				if (newPath) {
+					neighbour.h = heuristic(neighbour, end);
+					neighbour.f = neighbour.g + neighbour.h
+					neighbour.previous = currentNode;
+				}
 			}
 		}
 
@@ -153,42 +185,52 @@ function draw() {
 		// no soloution
 		console.log("No solution");
 		noLoop();
+		return;
 	}
 
 
 
 	// Find path
-	path = [];
-	var temp = currentNode;
-	path.push(temp)
-	while(temp.previous){
-		path.push(temp.previous);
-		temp = temp.previous;
-	}
+		path = [];
+		var temp = currentNode;
+		path.push(temp)
+		while(temp.previous){
+			path.push(temp.previous);
+			temp = temp.previous;
+		}
 
 
 	// Show visuals
-	background(255);
 
+	// Color of gridlines
+	background(0);
+
+	// Show grid
 	for (var i = 0; i < xCols; i ++) {
 		for (var j = 0; j < yRows; j ++) {
 			grid[i][j].show(color(200));
 		}
 	}
 
+	// Show open nodes (green)
 	for (var i = 0; i < openNodes.length; i ++) {
 		openNodes[i].show(color(0,200,0));
 	}
 
+	// Show closed nodes (red)
 	for (var i = 0; i < closedNodes.length; i ++) {
 		closedNodes[i].show(color(200,0,0));
 	}
 
+	// Show traversed nodes (path; yellow)
 	for (var i = 0; i < path.length; i ++) {
-		path[i].show(color(0,0,200));
+		path[i].show(color(200,200,0));
 	}
 
-	grid[end.i][end.j].show(color(20))
+	// Show start node (yellow)
+	grid[start.i][start.j].show(color(200,200,0))
 
-	grid[start.i][start.j].show(color(230))
+	// Show end node (purple)
+	grid[end.i][end.j].show(color(200,0,200))
+
 }
