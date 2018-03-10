@@ -1,6 +1,8 @@
 // A*
 // tutorial @ https://youtu.be/aKYlikFAV4k?t=32m31s
 
+var seconds;
+
 var xCols = 40;
 var yRows = 40;
 var grid = new Array(xCols);
@@ -97,6 +99,8 @@ function setup() {
 	createCanvas(400,400);
 	console.log("----- A* p5.js implementation -----");
 
+	seconds = millis()/1000;
+
 	w = width/xCols;
 	h = height/yRows;
 
@@ -147,7 +151,7 @@ function draw() {
 
 		if (currentNode == end) {
 			noLoop();
-			console.log("Maze solved.");
+			console.log("Maze solved.", seconds.toFixed(3), " seconds.");
 		}
 
 
@@ -183,7 +187,7 @@ function draw() {
 
 	} else {
 		// no soloution
-		console.log("No solution");
+		console.log("No solution", seconds.toFixed(3), " seconds.");
 		noLoop();
 		return;
 	}
