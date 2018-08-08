@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Hexagonal grid A* with python and p5.js. Change or comment line 46 for longer or for complete path."""
+"""Hexagonal grid A* with python and p5.js. Takes input as a file with directions (n,nw,w,sw,s,se,e,ne) and outputs JSON with hexagon objects. Change or comment line 46 for longer or for complete path."""
 
 import json
 
